@@ -1,17 +1,25 @@
 # 自定义指令文字回复
 
-在 AstrBot 插件 WebUI 中逐条设置指令名称与回复文字。群聊、私聊均可使用。只在消息带 AstrBot 当前指令前缀且指令名称完全一致时回复。
+在 AstrBot 插件详情中打开独立的“指令管理”页面，逐条设置指令名称与回复文字。群聊、私聊均可使用。只在消息带 AstrBot 当前指令前缀且指令名称完全一致时回复。
+
+## 界面预览
+
+以下为示例规则的页面预览：
+
+![指令管理界面预览](docs/ui-preview.png)
 
 ## 安装
 
-从 [GitHub Releases](https://github.com/taolicx/astrbot_plugin_custom_command_reply/releases) 下载 `astrbot_plugin_custom_command_reply.zip`，在 AstrBot WebUI 的插件页面选择“上传插件”。安装后打开本插件的配置页面。
+需要 AstrBot 4.26.0 或更新版本。从 [GitHub Releases](https://github.com/taolicx/astrbot_plugin_custom_command_reply/releases) 下载 `astrbot_plugin_custom_command_reply.zip`，在 AstrBot WebUI 的插件页面选择“上传插件”。安装后打开本插件详情页，进入“指令管理”。
 
 ## 配置
 
-1. 在“自定义指令回复”中点击添加规则。
+1. 在“指令管理”页点击“新增指令”。
 2. “指令名称”填写 `帮助`，不要填写 `/`。
-3. “回复文字”填写 `这是帮助内容。`。
-4. 保存配置。如果保存后仍使用旧规则，重载插件一次。
+3. “回复文字”填写 `这是帮助内容。`，点击“保存指令”。
+4. 列表中可编辑、停用、启用或删除规则。保存后立即生效。
+
+原有插件配置表单也保留了规则列表，可以作为备用入口。独立页面与配置表单使用同一份规则。
 
 默认 AstrBot 指令前缀是 `/`，所以发送 `/帮助` 会回复 `这是帮助内容。`。若 AstrBot 修改了唤醒前缀，插件会读取当前会话所用的前缀。
 
