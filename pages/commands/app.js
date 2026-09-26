@@ -26,12 +26,16 @@ const elements = {
   cancel: byId("cancel-button"),
   example: byId("example-command"),
   prefixNote: byId("prefix-note"),
+  wakeWordForm: byId("wake-word-form"),
+  wakeWordInput: byId("wake-word-input"),
+  wakeWordSave: byId("wake-word-save"),
 };
 
 const state = {
   rules: [],
   revision: "",
   prefix: "/",
+  wakeWord: "",
   loading: true,
   loadError: false,
   busy: false,
@@ -74,6 +78,8 @@ function updateBusy() {
   elements.save.textContent = state.busy ? "保存中…" : "保存指令";
   elements.cancel.disabled = state.busy;
   elements.closeEditor.disabled = state.busy;
+  elements.wakeWordInput.disabled = state.busy || state.loading || state.loadError;
+  elements.wakeWordSave.disabled = state.busy || state.loading || state.loadError;
 }
 
 function makeButton(label, className, onClick, accessibleLabel = label) {
@@ -211,6 +217,8 @@ async function loadRules() {
     state.rules = data.rules;
     state.revision = data.revision;
     state.prefix = typeof data.prefix === "string" ? data.prefix : "/";
+    state.wakeWord = typeof data.wake_word === "string" ? data.wake_word : "";
+    elements.wakeWordInput.value = state.wakeWord;
     state.loadError = false;
     elements.example.textContent = `${state.prefix}帮助`;
     elements.prefixNote.textContent = state.prefix
@@ -227,7 +235,7 @@ async function loadRules() {
   }
 }
 
-async function persist(nextRules, successMessage) {
+async function persist(nextRules, successMessage, wakeWord = state.wakeWord) {
   if (state.busy) return false;
   state.busy = true;
   updateBusy();
@@ -236,12 +244,14 @@ async function persist(nextRules, successMessage) {
     const data = await bridge.apiPost("rules", {
       rules: nextRules,
       revision: state.revision,
+      wake_word: wakeWord,
     });
     if (!data || !Array.isArray(data.rules) || typeof data.revision !== "string") {
       throw new Error("服务器返回的保存结果不正确。");
     }
     state.rules = data.rules;
     state.revision = data.revision;
+    state.wakeWord = typeof data.wake_word === "string" ? data.wake_word : wakeWord;
     if (typeof data.prefix === "string") state.prefix = data.prefix;
     notify(successMessage);
     return true;
@@ -252,6 +262,19 @@ async function persist(nextRules, successMessage) {
     state.busy = false;
     updateBusy();
     renderList();
+  }
+}
+
+async function saveWakeWord(event) {
+  event.preventDefault();
+  if (state.busy || state.loading || state.loadError) return;
+  const value = elements.wakeWordInput.value.trim();
+  if (value.length > 40 || /[\x00-\x1f]/.test(value) || value.startsWith("/")) {
+    notify("唤醒词最多 40 字，不能换行或以 / 开头。", "error");
+    return;
+  }
+  if (await persist(state.rules, value ? "唤醒词已保存。" : "唤醒词已清空。", value)) {
+    elements.wakeWordInput.value = state.wakeWord;
   }
 }
 
@@ -333,6 +356,7 @@ elements.closeEditor.addEventListener("click", closeEditor);
 elements.cancel.addEventListener("click", closeEditor);
 elements.form.addEventListener("submit", submitForm);
 elements.search.addEventListener("input", renderList);
+elements.wakeWordForm.addEventListener("submit", saveWakeWord);
 elements.reply.addEventListener("input", () => {
   elements.replyCount.textContent = `${elements.reply.value.length} / 10000`;
 });

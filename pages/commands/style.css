@@ -161,6 +161,12 @@ textarea { resize: vertical; min-height: 170px; line-height: 1.6; }
 .example-block span { color: var(--muted); font-size: 12px; }
 .example-block code { overflow-wrap: anywhere; color: var(--text); font-size: 14px; font-weight: 700; }
 .overview-panel .supporting-note { font-size: 12px; }
+.wake-word-form { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line); }
+.wake-word-form label { display: block; font-size: 13px; font-weight: 650; }
+.wake-word-form .field-hint { margin-bottom: 12px; line-height: 1.6; }
+.wake-word-row { display: flex; gap: 8px; }
+.wake-word-row input { min-width: 0; flex: 1; }
+.wake-word-row .button { flex: none; }
 .editor-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 24px; }
 .editor-heading h2 { margin-top: 8px; font-size: 20px; }
 .field { margin-bottom: 22px; }
@@ -181,6 +187,7 @@ textarea { resize: vertical; min-height: 170px; line-height: 1.6; }
 }
 
 @media (max-width: 560px) {
+  .wake-word-row { flex-direction: column; }
   .app-shell { padding: 24px 14px 40px; }
   .header-row { align-items: stretch; flex-direction: column; }
   .header-row > .button { width: 100%; }

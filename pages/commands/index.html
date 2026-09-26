@@ -57,12 +57,20 @@
           <div id="overview-panel" class="overview-panel">
             <div class="detail-kicker">使用方式</div>
             <h2>输入指令，立即回复</h2>
-            <p>指令名称无需填写前缀。群聊和私聊都会按照相同规则回复。</p>
+            <p>群聊可发送 @机器人 加指令；私聊可直接发送指令。也支持 AstrBot 指令前缀。</p>
             <div class="example-block">
               <span>示例指令</span>
               <code id="example-command">/帮助</code>
             </div>
             <p id="prefix-note" class="supporting-note">当前前缀以 AstrBot 设置为准，只匹配完整指令。</p>
+            <form id="wake-word-form" class="wake-word-form">
+              <label for="wake-word-input">可选唤醒词</label>
+              <p class="field-hint">填写后也可发送“唤醒词 /指令”，例如“机器人 /帮助”。已有 AstrBot 唤醒前缀也会自动识别。</p>
+              <div class="wake-word-row">
+                <input id="wake-word-input" name="wake-word" type="text" maxlength="40" autocomplete="off" placeholder="例如：机器人" />
+                <button id="wake-word-save" class="button button-subtle" type="submit">保存唤醒词</button>
+              </div>
+            </form>
           </div>
 
           <div id="editor-panel" class="editor-panel" hidden>

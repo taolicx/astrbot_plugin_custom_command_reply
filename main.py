@@ -8,6 +8,7 @@ from typing import Any
 
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.message_components import At, Plain
 from astrbot.api.star import Context, Star, register
 from astrbot.api.web import error_response, json_response, request
 
@@ -16,13 +17,14 @@ PLUGIN_NAME = "astrbot_plugin_custom_command_reply"
 MAX_RULES = 200
 MAX_COMMAND_LENGTH = 80
 MAX_REPLY_LENGTH = 10000
+MAX_WAKE_WORD_LENGTH = 40
 
 
 @register(
     PLUGIN_NAME,
     "taolicx",
     "在独立管理页配置自定义指令及对应的文字回复。",
-    "1.1.0",
+    "1.2.0",
 )
 class CustomCommandReply(Star):
     def __init__(self, context: Context, config: Any):
@@ -47,11 +49,13 @@ class CustomCommandReply(Star):
         async with self._rules_lock:
             rules = self.config.get("rules", [])
             prefixes = self._wake_prefixes()
+            wake_word = self._wake_word()
             return json_response(
                 {
                     "rules": self._public_rules(rules),
-                    "revision": self._revision(rules),
+                    "revision": self._revision(rules, wake_word),
                     "prefix": prefixes[0] if prefixes else "",
+                    "wake_word": wake_word,
                 }
             )
 
@@ -65,28 +69,35 @@ class CustomCommandReply(Star):
 
         try:
             rules = self._validate_rules(payload.get("rules"))
+            wake_word = self._validate_wake_word(
+                payload.get("wake_word", self._wake_word())
+            )
         except ValueError as exc:
             return error_response(str(exc), status_code=400)
 
         async with self._rules_lock:
             old_rules = self.config.get("rules", [])
-            if revision != self._revision(old_rules):
+            old_wake_word = self._wake_word()
+            if revision != self._revision(old_rules, old_wake_word):
                 return error_response(
                     "规则已在其他页面修改，请刷新后重试。", status_code=409
                 )
             self.config["rules"] = rules
+            self.config["wake_word"] = wake_word
             try:
                 self.config.save_config()
             except Exception as exc:
                 self.config["rules"] = old_rules
+                self.config["wake_word"] = old_wake_word
                 logger.error(f"[CustomCommandReply] 保存规则失败：{exc}")
                 return error_response("保存失败，请查看 AstrBot 日志。", status_code=500)
             prefixes = self._wake_prefixes()
             return json_response(
                 {
                     "rules": self._public_rules(rules),
-                    "revision": self._revision(rules),
+                    "revision": self._revision(rules, wake_word),
                     "prefix": prefixes[0] if prefixes else "",
+                    "wake_word": wake_word,
                 }
             )
 
@@ -108,9 +119,29 @@ class CustomCommandReply(Star):
         return result
 
     @staticmethod
-    def _revision(rules: Any) -> str:
-        raw = json.dumps(rules, ensure_ascii=False, sort_keys=True, default=str)
+    def _revision(rules: Any, wake_word: str) -> str:
+        raw = json.dumps(
+            {"rules": rules, "wake_word": wake_word},
+            ensure_ascii=False,
+            sort_keys=True,
+            default=str,
+        )
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+    def _wake_word(self) -> str:
+        value = self.config.get("wake_word", "")
+        return value.strip() if isinstance(value, str) else ""
+
+    @staticmethod
+    def _validate_wake_word(value: Any) -> str:
+        if not isinstance(value, str):
+            raise ValueError("唤醒词必须是文字。")
+        value = value.strip()
+        if len(value) > MAX_WAKE_WORD_LENGTH or any(ord(c) < 32 for c in value):
+            raise ValueError(f"唤醒词不能超过 {MAX_WAKE_WORD_LENGTH} 字，且不能包含换行。")
+        if value.startswith("/"):
+            raise ValueError("唤醒词不要填写指令前缀 /。")
+        return value
 
     def _validate_rules(self, raw_rules: Any) -> list[dict[str, Any]]:
         if not isinstance(raw_rules, list):
@@ -169,7 +200,16 @@ class CustomCommandReply(Star):
             return
         raw_text = raw_text.strip()
 
-        command = self._extract_command(raw_text, self._wake_prefixes(event))
+        is_private = event.is_private_chat()
+        at_text = None if is_private else self._at_self_text(event)
+        if at_text is False:
+            return
+        command = self._extract_command(
+            at_text if isinstance(at_text, str) else raw_text,
+            self._wake_prefixes(event),
+            allow_bare=is_private or isinstance(at_text, str),
+            wake_word=self._wake_word(),
+        )
         if command is None:
             return
 
@@ -212,9 +252,36 @@ class CustomCommandReply(Star):
         return sorted(set(prefixes), key=len, reverse=True)
 
     @staticmethod
-    def _extract_command(raw_text: str, prefixes: list[str]) -> str | None:
+    def _at_self_text(event: AstrMessageEvent) -> str | bool | None:
+        messages = event.get_messages()
+        if not messages or not isinstance(messages[0], At):
+            return None
+        if str(messages[0].qq) != str(event.get_self_id()):
+            return False
+        if not all(isinstance(item, Plain) for item in messages[1:]):
+            return False
+        return "".join(item.text for item in messages[1:]).strip()
+
+    @staticmethod
+    def _extract_command(
+        raw_text: str,
+        prefixes: list[str],
+        *,
+        allow_bare: bool = False,
+        wake_word: str = "",
+    ) -> str | None:
+        raw_text = raw_text.strip()
+        if wake_word and raw_text.startswith(wake_word):
+            remainder = raw_text[len(wake_word) :]
+            if remainder and remainder[0].isspace():
+                raw_text = remainder.strip()
         for prefix in prefixes:
             if raw_text.startswith(prefix):
                 command = raw_text[len(prefix) :].strip()
+                if prefix.isalnum():
+                    for inner_prefix in prefixes:
+                        if command.startswith(inner_prefix):
+                            command = command[len(inner_prefix) :].strip()
+                            break
                 return command or None
-        return None
+        return raw_text if allow_bare and raw_text else None

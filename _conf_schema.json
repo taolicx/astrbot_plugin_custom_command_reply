@@ -4,10 +4,16 @@
     "type": "bool",
     "default": true
   },
+  "wake_word": {
+    "description": "可选唤醒词",
+    "type": "string",
+    "default": "",
+    "hint": "例如填写 机器人，可发送 机器人 /帮助。无需填写时留空；AstrBot 已配置的唤醒前缀也会自动识别。"
+  },
   "rules": {
     "description": "自定义指令回复",
     "type": "template_list",
-    "hint": "点击添加，逐条填写不含 / 的指令名称和对应文字。群聊、私聊都生效；只匹配完整指令。",
+    "hint": "点击添加，逐条填写不含 / 的指令名称和对应文字。群聊 @机器人、私聊直接输入、唤醒词加指令均可使用；只匹配完整指令。",
     "default": [],
     "templates": {
       "reply_rule": {
