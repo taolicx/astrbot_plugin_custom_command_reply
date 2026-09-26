@@ -1,0 +1,38 @@
+{
+  "enabled": {
+    "description": "启用插件",
+    "type": "bool",
+    "default": true
+  },
+  "rules": {
+    "description": "自定义指令回复",
+    "type": "template_list",
+    "hint": "点击添加，逐条填写不含 / 的指令名称和对应文字。群聊、私聊都生效；只匹配完整指令。",
+    "default": [],
+    "templates": {
+      "reply_rule": {
+        "name": "指令回复规则",
+        "hint": "一条指令对应一段固定文字。",
+        "items": {
+          "command": {
+            "description": "指令名称",
+            "type": "string",
+            "default": "",
+            "hint": "例如填写 帮助，用户发送 /帮助 时触发。不要填写 /；名称中间可有空格。"
+          },
+          "reply": {
+            "description": "回复文字",
+            "type": "text",
+            "default": "",
+            "hint": "支持普通文字和换行；目前不支持图片、语音或变量。"
+          },
+          "enabled": {
+            "description": "启用此规则",
+            "type": "bool",
+            "default": true
+          }
+        }
+      }
+    }
+  }
+}
