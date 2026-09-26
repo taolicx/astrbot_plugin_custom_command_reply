@@ -1,0 +1,7 @@
+name: astrbot_plugin_custom_command_reply
+display_name: 自定义指令文字回复
+description: 在插件 WebUI 中逐条配置指令名称与对应的文字回复。
+author: taolicx
+version: 1.0.0
+astrbot_version: ">=4.5.7"
+repo: "https://github.com/taolicx/astrbot_plugin_custom_command_reply"
