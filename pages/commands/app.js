@@ -67,8 +67,8 @@ function showFormError(message) {
 }
 
 function updateBusy() {
-  elements.add.disabled = state.busy || state.loading;
-  elements.emptyAdd.disabled = state.busy || state.loading;
+  elements.add.disabled = state.busy || state.loading || state.loadError;
+  elements.emptyAdd.disabled = state.busy || state.loading || state.loadError;
   elements.refresh.disabled = state.busy || state.loading;
   elements.save.disabled = state.busy;
   elements.save.textContent = state.busy ? "保存中…" : "保存指令";
@@ -184,7 +184,8 @@ function openEditor(index = null) {
   renderList();
   elements.command.focus();
   if (window.matchMedia("(max-width: 900px)").matches) {
-    elements.editor.scrollIntoView({ block: "start", behavior: "smooth" });
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    elements.editor.scrollIntoView({ block: "start", behavior: reducedMotion ? "auto" : "smooth" });
   }
 }
 
@@ -350,6 +351,8 @@ window.addEventListener("keydown", (event) => {
 async function start() {
   if (!bridge || typeof bridge.ready !== "function") {
     state.loading = false;
+    state.loadError = true;
+    updateBusy();
     renderList();
     notify("请从 AstrBot 的插件页面打开此管理界面。", "error");
     return;
@@ -359,6 +362,8 @@ async function start() {
     await loadRules();
   } catch (error) {
     state.loading = false;
+    state.loadError = true;
+    updateBusy();
     renderList();
     notify(`页面初始化失败：${error.message || error}`, "error");
   }
