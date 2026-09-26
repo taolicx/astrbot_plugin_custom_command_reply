@@ -1,0 +1,8 @@
+{
+  "pages": {
+    "commands": {
+      "title": "指令管理",
+      "description": "新增、编辑和管理固定文字回复指令。"
+    }
+  }
+}
