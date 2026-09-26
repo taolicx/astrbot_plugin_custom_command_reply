@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>指令回复管理</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="page-header">
+        <div class="eyebrow">COMMAND REPLIES</div>
+        <div class="header-row">
+          <div>
+            <h1>指令回复管理</h1>
+            <p class="intro">为常用指令设置固定文字回复，保存后立即生效。</p>
+          </div>
+          <button id="add-button" class="button button-primary" type="button">＋ 新增指令</button>
+        </div>
+      </header>
+
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+      <div class="workspace">
+        <section class="rules-panel" aria-labelledby="rules-heading">
+          <div class="panel-heading">
+            <div>
+              <h2 id="rules-heading">全部指令</h2>
+              <p id="rule-count" class="panel-subtitle">正在加载…</p>
+            </div>
+            <button id="refresh-button" class="button button-subtle" type="button">刷新</button>
+          </div>
+
+          <div class="search-field">
+            <label for="search-input">搜索指令或回复</label>
+            <input id="search-input" type="search" placeholder="输入关键词筛选" autocomplete="off" />
+          </div>
+
+          <div id="loading-state" class="loading-state" aria-label="正在加载规则">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+          </div>
+
+          <div id="empty-state" class="empty-state" hidden>
+            <div class="empty-symbol" aria-hidden="true">/</div>
+            <h3>还没有指令</h3>
+            <p>新增一条规则，设置触发名称和机器人要回复的文字。</p>
+            <button id="empty-add-button" class="button button-primary" type="button">新增第一条指令</button>
+          </div>
+
+          <p id="no-results" class="no-results" hidden>没有找到匹配的规则。试试其他关键词。</p>
+          <ul id="rule-list" class="rule-list" aria-label="指令规则列表"></ul>
+        </section>
+
+        <aside class="detail-panel" aria-label="规则详情与编辑">
+          <div id="overview-panel" class="overview-panel">
+            <div class="detail-kicker">使用方式</div>
+            <h2>输入指令，立即回复</h2>
+            <p>指令名称无需填写前缀。群聊和私聊都会按照相同规则回复。</p>
+            <div class="example-block">
+              <span>示例指令</span>
+              <code id="example-command">/帮助</code>
+            </div>
+            <p id="prefix-note" class="supporting-note">当前前缀以 AstrBot 设置为准，只匹配完整指令。</p>
+          </div>
+
+          <div id="editor-panel" class="editor-panel" hidden>
+            <div class="editor-heading">
+              <div>
+                <div class="detail-kicker">规则编辑</div>
+                <h2 id="editor-title">新增指令</h2>
+              </div>
+              <button id="close-editor" class="button button-subtle" type="button" aria-label="关闭编辑">取消</button>
+            </div>
+
+            <form id="rule-form" novalidate>
+              <div class="field">
+                <label for="command-input">指令名称 <span aria-hidden="true">*</span></label>
+                <input id="command-input" name="command" type="text" maxlength="80" autocomplete="off" placeholder="例如：帮助" required />
+                <p id="command-hint" class="field-hint">不要填写前缀。可以使用中文、英文或空格。</p>
+              </div>
+
+              <div class="field">
+                <label for="reply-input">回复文字 <span aria-hidden="true">*</span></label>
+                <textarea id="reply-input" name="reply" rows="9" maxlength="10000" placeholder="输入机器人要发送的文字…" required></textarea>
+                <div class="field-footer">
+                  <span>支持换行，暂不支持图片或变量。</span>
+                  <span id="reply-count">0 / 10000</span>
+                </div>
+              </div>
+
+              <label class="checkbox-row" for="enabled-input">
+                <input id="enabled-input" name="enabled" type="checkbox" checked />
+                <span>
+                  <strong>启用这条指令</strong>
+                  <small>关闭后保留内容，但不会触发回复。</small>
+                </span>
+              </label>
+
+              <p id="form-error" class="form-error" role="alert" hidden></p>
+              <div class="form-actions">
+                <button id="save-button" class="button button-primary" type="submit">保存指令</button>
+                <button id="cancel-button" class="button button-subtle" type="button">取消</button>
+              </div>
+            </form>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
